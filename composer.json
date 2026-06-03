@@ -1,5 +1,5 @@
 {
-  "name": "yahlox/v1",
+  "name": "yahlox/processor",
   "description": "A PHP workflow engine that parses ReactFlow JSON and supports Laravel package integration.",
   "type": "library",
   "license": "MIT",
