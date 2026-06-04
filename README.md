@@ -81,6 +81,21 @@ $yahlox = new YahloxLibrary(
 $yahlox->run($workflow, $context);
 
 $createdRecord = $context->get('todo');
+
+// --- Read example ---
+// Later in a workflow you can read the record back by id and store it in context
+// Use node type `readRecord` and optionally `storeAs` to capture the result.
+
+/*
+['id' => 'get_todo', 'type' => 'readRecord', 'data' => [
+    'model' => 'Todo',
+    'record_id' => '{todo.id}',
+    'storeAs' => 'fetched_todo',
+]],
+*/
+
+// After running a workflow that includes the above node, read result is available:
+$fetched = $context->get('fetched_todo');
 ```
 
 That is the basic flow: define a CRUD workflow, create an execution context, instantiate Yahlox, and run the workflow.
