@@ -348,6 +348,108 @@ When using database storage strategies, provide connection details via `data.con
 ]
 ```
 
+### Example: Create Todo Workflow Storage
+
+The following workflow works with `createRecord` and will store a new `Todo` record if the `Todo` model exists as an Eloquent model:
+
+```php
+$workflow = [
+    'nodes' => [
+        ['id' => 'start', 'type' => 'start'],
+        ['id' => 'validate_create', 'type' => 'condition', 'data' => [
+            'expression' => '{title} != "" && {desc} != "" && {due_date} != ""',
+            'branchMapping' => ['true' => 'create_todo', 'false' => 'validation_failed_notify'],
+        ]],
+        ['id' => 'create_todo', 'type' => 'createRecord', 'data' => [
+            'model' => 'Todo',
+            'fields' => [
+                'title' => '{title}',
+                'description' => '{desc}',
+                'due_date' => '{due_date}',
+                'status' => 'open',
+            ],
+            'storeAs' => 'created_todo',
+            'storage' => 'eloquent',
+        ]],
+        ['id' => 'created_notify', 'type' => 'sendNotification', 'data' => [
+            'user_id' => '{user_id}',
+            'title' => 'Todo created',
+            'body' => 'Todo created successfully.',
+        ]],
+        ['id' => 'validation_failed_notify', 'type' => 'sendNotification', 'data' => [
+            'user_id' => '{user_id}',
+            'title' => 'Todo validation failed',
+            'body' => 'Todo payload validation failed. Please provide title, desc, and due_date.',
+        ]],
+        ['id' => 'end', 'type' => 'end'],
+    ],
+    'edges' => [
+        ['source' => 'start', 'target' => 'validate_create'],
+        ['source' => 'validate_create', 'target' => 'create_todo'],
+        ['source' => 'validate_create', 'target' => 'validation_failed_notify'],
+        ['source' => 'create_todo', 'target' => 'created_notify'],
+        ['source' => 'create_todo', 'target' => 'end'],
+        ['source' => 'created_notify', 'target' => 'end'],
+        ['source' => 'validation_failed_notify', 'target' => 'end'],
+    ],
+];
+```
+
+This will:
+
+- validate required workflow context values `title`, `desc`, and `due_date`
+- create a new `Todo` record using `createRecord`
+- store the created record under `created_todo` and `created_todo_id` in `ExecutionContext`
+- send a notification after success or failure
+
+If the `Todo` class is an Eloquent model, Yahlox automatically resolves the `eloquent` storage strategy. If you do not want database persistence, override with:
+
+```php
+'storage' => 'context'
+```
+
+To use the database-backed storage strategy, ensure your application has:
+
+- a valid `Todo` Eloquent model
+- correct database connection settings in your Laravel config
+- the target database table and columns available for the `Todo` model
+
+If you want to force the database connection in the node, include `storage` and `config`:
+
+```php
+['id' => 'create_todo', 'type' => 'createRecord', 'data' => [
+    'model' => 'Todo',
+    'storage' => 'eloquent',
+    'fields' => [
+        'title' => '{title}',
+        'description' => '{desc}',
+        'due_date' => '{due_date}',
+        'status' => 'open',
+    ],
+    'storeAs' => 'created_todo',
+    'config' => [
+        'connection' => 'mysql',
+        'host' => env('DB_HOST', '127.0.0.1'),
+        'port' => env('DB_PORT', 3306),
+        'username' => env('DB_USERNAME'),
+        'password' => env('DB_PASSWORD'),
+        'database' => env('DB_DATABASE'),
+    ],
+]]
+```
+
+Then run your workflow with the required context values:
+
+```php
+$context = new ExecutionContext();
+$context->set('title', 'Buy coffee');
+$context->set('desc', 'Morning shopping');
+$context->set('due_date', '2026-06-10');
+$context->set('user_id', 'user_123');
+
+$yahlox->run($workflow['definition'], $context);
+```
+
 ### Custom Storage Strategies
 
 Create a new strategy by implementing `Yahlox\Contracts\StorageStrategyInterface`:
