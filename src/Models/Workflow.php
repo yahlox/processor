@@ -36,6 +36,7 @@ final class Workflow extends Model
         static::creating(function (Workflow $workflow): void {
             if (empty($workflow->node)) {
                 do {
+                    /** Uniquely generated node ID */
                     $workflow->node = Str::random(36);
                 } while (
                     static::where('node', $workflow->node)->exists()
