@@ -514,20 +514,20 @@ public function boot(NodeProcessorRegistry $registry): void
 
 Yahlox provides optional database migrations for storing workflows, execution history, and channel credentials.
 
-To publish migrations to your Laravel application:
+Migrations are **automatically loaded** when Yahlox is installed. To optionally publish them to your Laravel application for customization:
 
 ```bash
 php artisan vendor:publish --tag=yahlox-migrations
 ```
 
-This creates migrations for:
+This publishes migrations for:
 
 - **workflows** – stores workflow definitions (name, description, ReactFlow JSON, active status)
 - **workflow_executions** – tracks execution history (workflow_id, status, context, error, timestamps)
 - **send_channel_credentials** – stores API credentials for messaging channels (email, SMS, Viber, WhatsApp, Telegram, etc.)
 - **storage_channel_credentials** – stores database connection details for storage strategies (host, port, database, credentials)
 
-After publishing, run migrations:
+After publishing (or if using auto-loaded migrations), run:
 
 ```bash
 php artisan migrate
@@ -541,6 +541,33 @@ $workflow = \App\Models\Workflow::where('name', 'todo_workflow')->first();
 $yahlox = app(\Yahlox\YahloxLibrary::class);
 $context = new ExecutionContext();
 $yahlox->run(json_decode($workflow->definition, true), $context);
+```
+
+Alternatively, to reference stored channel credentials in your workflow nodes:
+
+```php
+['id' => 'send_email', 'type' => 'sendEmail', 'data' => [
+    'to' => '{email}',
+    'subject' => 'Welcome',
+    'body' => 'Hello {name}',
+    'channel' => 'email',
+    'config' => [
+        'credentials_id' => 1,  // Reference stored SendChannelCredential record
+    ]
+]]
+```
+
+And to reference storage credentials:
+
+```php
+['id' => 'save_user', 'type' => 'createRecord', 'data' => [
+    'model' => 'User',
+    'storage' => 'eloquent',
+    'fields' => ['name' => '{name}', 'email' => '{email}'],
+    'config' => [
+        'credentials_id' => 1,  // Reference stored StorageChannelCredential record
+    ]
+]]
 ```
 
 ## Custom Nodes

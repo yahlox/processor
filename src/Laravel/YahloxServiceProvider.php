@@ -53,8 +53,23 @@ final class YahloxServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->publishMigrations([
-            __DIR__ . '/../../database/migrations' => database_path('migrations'),
-        ]);
+        if ($this->app->runningInConsole()) {
+            $migrationsPath = __DIR__ . '/../../database/migrations';
+            
+            // Get all migration files and publish them
+            $migrations = glob($migrationsPath . '/*.php');
+            $publishArray = [];
+            
+            foreach ($migrations as $migration) {
+                $publishArray[$migration] = database_path('migrations/' . basename($migration));
+            }
+            
+            if (!empty($publishArray)) {
+                $this->publishes($publishArray, 'yahlox-migrations');
+            }
+            
+            // Also auto-load migrations
+            $this->loadMigrationsFrom($migrationsPath);
+        }
     }
 }
