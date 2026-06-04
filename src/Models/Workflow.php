@@ -6,6 +6,7 @@ namespace Yahlox\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+
 /**
  * Represents a parsed workflow graph of nodes and edges.
  *
@@ -30,17 +31,15 @@ final class Workflow extends Model
         'is_active' => 'boolean',
     ];
 
-    protected static function boot(): void
+    protected static function booted(): void
     {
         static::creating(function (Workflow $workflow): void {
             if (empty($workflow->node)) {
                 do {
-                    $node = Str::upper(Str::random(36));
+                    $workflow->node = strtoupper(Str::random(36));
                 } while (
-                    self::where('node', $node)->exists()
+                    static::where('node', $workflow->node)->exists()
                 );
-
-                $workflow->node = $node;
             }
         });
     }
