@@ -14,5 +14,5 @@ interface StorageStrategyInterface
 
     public function delete(string $model, string $recordId, ExecutionContext $context, array $metadata = []): array;
 
-    public function find(string $model, string $recordId, ExecutionContext $context): ?array;
+    public function find(string $model, ?string $recordId, ExecutionContext $context, array $metadata = []): ?array;
 }

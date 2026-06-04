@@ -39,7 +39,7 @@ final class StorageStrategyManagerTest extends TestCase
                 return ['success' => true, 'found' => true, 'id' => $recordId];
             }
 
-            public function find(string $model, string $recordId, ExecutionContext $context): ?array
+            public function find(string $model, ?string $recordId, ExecutionContext $context, array $metadata = []): ?array
             {
                 return ['id' => $recordId];
             }

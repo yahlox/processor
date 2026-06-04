@@ -52,8 +52,12 @@ final class ContextStorageStrategy implements StorageStrategyInterface
         ];
     }
 
-    public function find(string $model, string $recordId, ExecutionContext $context): ?array
+    public function find(string $model, ?string $recordId, ExecutionContext $context, array $metadata = []): ?array
     {
+        if ($recordId === null) {
+            return [];
+        }
+
         return $context->get("created_{$model}_{$recordId}") ?? null;
     }
 }

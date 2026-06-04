@@ -99,14 +99,73 @@ final class EloquentStorageStrategy implements StorageStrategyInterface
         return ['success' => true, 'found' => true, 'id' => $recordId];
     }
 
-    public function find(string $model, string $recordId, ExecutionContext $context): ?array
+    public function find(string $model, ?string $recordId, ExecutionContext $context, array $metadata = []): ?array
     {
         $modelClass = $this->guessModelClass($model);
         if ($modelClass === null || !$this->isEloquentModelClass($modelClass)) {
             return null;
         }
 
-        $record = $modelClass::find($recordId);
-        return $record !== null && method_exists($record, 'toArray') ? $record->toArray() : null;
+        if ($recordId !== null && $recordId !== '') {
+            $record = $modelClass::find($recordId);
+
+            return $record !== null && method_exists($record, 'toArray') ? $record->toArray() : null;
+        }
+
+        $query = $modelClass::query();
+        $conditions = $metadata['query'] ?? [];
+
+        if (is_string($conditions) && $conditions !== '') {
+            $query->whereRaw($conditions);
+        } elseif (is_array($conditions)) {
+            foreach ($conditions as $key => $value) {
+                if (is_int($key)) {
+                    if (is_array($value)) {
+                        if (count($value) === 3) {
+                            [$column, $operator, $val] = $value;
+                            $query->where($column, $operator, $this->resolvePlaceholders($val, $context));
+                            continue;
+                        }
+
+                        if (count($value) === 2) {
+                            [$column, $val] = $value;
+                            $query->where($column, $this->resolvePlaceholders($val, $context));
+                            continue;
+                        }
+                    }
+
+                    if (is_string($value)) {
+                        $query->whereRaw($value);
+                    }
+                } elseif ($key === 'raw' && is_string($value)) {
+                    $query->whereRaw($value);
+                } elseif ($key === 'or' && is_array($value)) {
+                    $query->where(function ($builder) use ($value, $context) {
+                        foreach ($value as $condition) {
+                            if (!is_array($condition)) {
+                                continue;
+                            }
+
+                            if (count($condition) === 3) {
+                                [$column, $operator, $val] = $condition;
+                                $builder->orWhere($column, $operator, $this->resolvePlaceholders($val, $context));
+                                continue;
+                            }
+
+                            if (count($condition) === 2) {
+                                [$column, $val] = $condition;
+                                $builder->orWhere($column, $this->resolvePlaceholders($val, $context));
+                            }
+                        }
+                    });
+                } else {
+                    $query->where($key, $this->resolvePlaceholders($value, $context));
+                }
+            }
+        }
+
+        $records = $query->get();
+
+        return $records->map(static fn ($record) => method_exists($record, 'toArray') ? $record->toArray() : [])->all();
     }
 }

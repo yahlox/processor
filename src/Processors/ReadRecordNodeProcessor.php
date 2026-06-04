@@ -26,29 +26,29 @@ final class ReadRecordNodeProcessor implements NodeProcessorInterface
     {
         $data = $node->data();
         $recordId = $data['record_id'] ?? null;
-
-        if (!$recordId) {
-            throw new RuntimeException('ReadRecord node missing record_id');
-        }
-
-        $resolvedId = $this->resolvePlaceholders($recordId, $context);
+        $recordId = $recordId !== null ? (string)$this->resolvePlaceholders($recordId, $context) : null;
+        $recordId = trim((string)$recordId) === '' ? null : $recordId;
 
         $data['config'] = $this->resolveStorageConfig($data, $context);
         $strategy = $this->storageManager->resolve($data, $context);
 
-        $found = $strategy->find($data['model'] ?? 'GenericRecord', (string)$resolvedId, $context);
+        $found = $strategy->find($data['model'] ?? 'GenericRecord', $recordId, $context, $data);
 
         if ($found === null) {
-            $context->set("found_record_{$resolvedId}", null);
-            $context->set('last_read_record', ['id' => (string)$resolvedId, 'data' => null]);
+            if ($recordId !== null) {
+                $context->set("found_record_{$recordId}", null);
+                $context->set('last_read_record', ['id' => $recordId, 'data' => null]);
+            }
             return;
         }
 
         if (isset($data['storeAs'])) {
             $context->set($data['storeAs'], $found);
-            $context->set("{$data['storeAs']}_id", (string)$resolvedId);
+            if ($recordId !== null) {
+                $context->set("{$data['storeAs']}_id", $recordId);
+            }
         }
 
-        $context->set('last_read_record', ['id' => (string)$resolvedId, 'data' => $found]);
+        $context->set('last_read_record', ['id' => $recordId, 'data' => $found]);
     }
 }
