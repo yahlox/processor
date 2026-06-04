@@ -18,12 +18,14 @@ final class Workflow extends Model
     protected $fillable = [
         'name',
         'description',
-        'definition',
+        'nodes',
+        'edges',
         'is_active',
     ];
 
     protected $casts = [
-        'definition' => 'array',
+        'nodes' => 'array',
+        'edges' => 'array',
         'is_active' => 'boolean',
     ];
 

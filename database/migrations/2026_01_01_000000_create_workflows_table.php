@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('node', 36)->unique()->index();
             $table->string('name')->unique();
             $table->text('description')->nullable();
-            $table->json('definition')->comment('ReactFlow JSON with nodes and edges');
+            $table->json('nodes')->comment('ReactFlow JSON Node');
+            $table->json('edges')->comment('ReactFlow JSON Edge');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
