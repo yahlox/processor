@@ -13,7 +13,9 @@ It is designed for business process automation, backend orchestration, and integ
 * Workflow validation enforcing exactly one `start` node
 * Executable workflow graph with `ExecutionContext` state propagation
 * Extensible `NodeProcessorRegistry` for custom node types
-* Built-in support for branching, looping, delay, HTTP requests, CRUD operations, notifications, email, SMS, and custom callbacks
+* Pluggable storage strategies (Eloquent, Context, extensible for MySQL/PostgreSQL/SQLite/NoSQL/Google Drive/Excel/MS Access)
+* Pluggable send channels (Email, SMS, Viber, WhatsApp, Messenger, Telegram, and custom)
+* Built-in support for branching, looping, delay, HTTP requests, CRUD operations, notifications, and custom callbacks
 * Laravel service provider for dependency injection and container binding
 * Safe placeholder substitution for `{variable}` values in expressions and payload fields
 
@@ -139,12 +141,23 @@ $json = [
 * `httpRequest` – performs an HTTP request with `curl`
   * `data.url`, `data.method`, `data.headers`, `data.body`
   * optional `data.storeResponseAs` to save the response in context
-* `sendNotification` – records a notification payload
-  * `data.user_id`, `data.title`, `data.body`
-* `sendEmail` – records an email payload
-  * `data.to`, `data.subject`, `data.body`
-* `sendSms` – records an SMS payload
-  * `data.to`, `data.message`
+* `sendNotification` – sends a notification via a pluggable channel
+  * `data.user_id` – recipient identifier
+  * `data.title` – notification title
+  * `data.body` – notification body
+  * optional `data.channel` – send channel name (default: `log`), e.g. `telegram`, `email`
+  * optional `data.config` – channel-specific configuration (API keys, credentials)
+* `sendEmail` – sends an email via a pluggable channel
+  * `data.to` – recipient email address
+  * `data.subject` – email subject
+  * `data.body` – email body
+  * optional `data.channel` – send channel name (default: `email`)
+  * optional `data.config` – channel-specific configuration (SMTP credentials)
+* `sendSms` – sends an SMS via a pluggable channel
+  * `data.to` – recipient phone number
+  * `data.message` – SMS message text
+  * optional `data.channel` – send channel name (default: `sms`), e.g. `sms`, `whatsapp`, `viber`
+  * optional `data.config` – channel-specific configuration (provider API keys)
 
 ### CRUD-style record handling
 
@@ -153,25 +166,18 @@ $json = [
   * `data.fields` – payload fields with `{placeholder}` support
   * optional `data.storeAs`
   * optional `data.storage` – storage strategy name, e.g. `context`, `eloquent`
+  * optional `data.config` – storage backend configuration (credentials, connection details)
 * `updateRecord` – updates a record via a storage strategy
   * `data.record_id`
   * optional `data.model`
   * `data.fields`
   * optional `data.storage`
+  * optional `data.config` – storage backend configuration
 * `deleteRecord` – deletes a record via a storage strategy
   * `data.record_id`
   * optional `data.model`
   * optional `data.storage`
-
-Storage strategy selection rules:
-
-* explicit `data.storage` takes precedence when a registered strategy exists
-* if `data.model` resolves to an Eloquent class, the `eloquent` strategy is chosen automatically
-* otherwise the default `context` strategy simulates persistence in workflow context
-
-You can add new storage strategies for MySQL, SQLite, PostgreSQL, NoSQL, Google Drive / Excel, MS Access, or any other backend by implementing `Yahlox\Contracts\StorageStrategyInterface` and registering the strategy with `StorageStrategyManager`.
-
-### Extension
+  * optional `data.config` – storage backend configuration
 
 * `custom` – runs a PHP callable defined in `data.callback`
 
@@ -289,6 +295,203 @@ This example demonstrates:
 * notifications for success and failure
 * terminal `end` node
 
+## Storage Strategies
+
+Yahlox uses pluggable storage strategies for CRUD operations. Configure the strategy with `data.storage`.
+
+### Built-in strategies
+
+- `context` – simulates persistence in workflow execution context (default)
+- `eloquent` – persists to Eloquent models when available
+
+### Storage Configuration
+
+When using database storage strategies, provide connection details via `data.config`:
+
+**Example: MySQL/MariaDB via Eloquent**
+
+```php
+['id' => 'save_record', 'type' => 'createRecord', 'data' => [
+    'model' => 'User',
+    'storage' => 'eloquent',
+    'fields' => ['name' => '{name}', 'email' => '{email}'],
+    'config' => [
+        'connection' => 'mysql',
+        'host' => env('DB_HOST', 'localhost'),
+        'port' => env('DB_PORT', 3306),
+        'username' => env('DB_USERNAME'),
+        'password' => env('DB_PASSWORD'),
+        'database' => env('DB_DATABASE'),
+    ]
+]]
+```
+
+**Example: PostgreSQL**
+
+```php
+'config' => [
+    'connection' => 'pgsql',
+    'host' => env('DB_HOST'),
+    'port' => env('DB_PORT', 5432),
+    'username' => env('DB_USERNAME'),
+    'password' => env('DB_PASSWORD'),
+    'database' => env('DB_DATABASE'),
+]
+```
+
+**Example: SQLite**
+
+```php
+'config' => [
+    'connection' => 'sqlite',
+    'database' => env('DB_DATABASE', 'database.sqlite'),
+]
+```
+
+### Custom Storage Strategies
+
+Create a new strategy by implementing `Yahlox\Contracts\StorageStrategyInterface`:
+
+```php
+class GoogleDriveStorageStrategy implements StorageStrategyInterface
+{
+    public function create(string $model, array $payload, ExecutionContext $context, array $metadata = []): array
+    {
+        $credentials = $metadata['config']['credentials'] ?? null;
+        if (!$credentials) {
+            return ['success' => false, 'error' => 'Missing Google API credentials'];
+        }
+        
+        // Use Google Drive API to store record
+        $fileId = $this->uploadToGoogleDrive($payload, $credentials);
+        
+        return ['success' => true, 'id' => $fileId, 'data' => $payload];
+    }
+    
+    // Implement other required methods...
+}
+```
+
+Register custom storage:
+
+```php
+$storageManager->register('google_drive', new GoogleDriveStorageStrategy());
+```
+
+## Send Channel Strategies
+
+Yahlox uses pluggable send channels for notifications, emails, and messages. Specify the channel with `data.channel`.
+
+### Built-in channels
+
+- `log` – logs to workflow context (default)
+- `email` – sends email messages
+- `sms` – sends SMS via SMS provider
+- `viber` – sends Viber messages
+- `whatsapp` – sends WhatsApp messages
+- `messenger` – sends Facebook Messenger messages
+- `telegram` – sends Telegram messages
+
+### Send Configuration
+
+Provide credentials and configuration via `data.config`:
+
+**Example: Email with SMTP**
+
+```php
+['id' => 'send_notification', 'type' => 'sendEmail', 'data' => [
+    'to' => '{user_email}',
+    'subject' => 'Welcome!',
+    'body' => 'Hello {name}',
+    'channel' => 'email',
+    'config' => [
+        'smtp_host' => env('MAIL_HOST'),
+        'smtp_port' => env('MAIL_PORT'),
+        'smtp_user' => env('MAIL_USERNAME'),
+        'smtp_pass' => env('MAIL_PASSWORD'),
+    ]
+]]
+```
+
+**Example: SMS via Twilio**
+
+```php
+['id' => 'send_sms', 'type' => 'sendSms', 'data' => [
+    'to' => '{phone}',
+    'message' => 'Your code is {code}',
+    'channel' => 'sms',
+    'config' => [
+        'provider' => 'twilio',
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'from_number' => env('TWILIO_FROM_NUMBER'),
+    ]
+]]
+```
+
+**Example: WhatsApp via Twilio**
+
+```php
+['id' => 'send_whatsapp', 'type' => 'sendSms', 'data' => [
+    'to' => '{whatsapp_number}',
+    'message' => 'Your appointment: {date}',
+    'channel' => 'whatsapp',
+    'config' => [
+        'provider' => 'twilio',
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+    ]
+]]
+```
+
+**Example: Telegram**
+
+```php
+['id' => 'send_telegram', 'type' => 'sendNotification', 'data' => [
+    'user_id' => '{telegram_chat_id}',
+    'title' => 'Alert',
+    'body' => 'Status: {status}',
+    'channel' => 'telegram',
+    'config' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ]
+]]
+```
+
+### Custom Send Channels
+
+Create a new channel by implementing `Yahlox\Contracts\SendChannelStrategyInterface`:
+
+```php
+class SlackSendChannelStrategy implements SendChannelStrategyInterface
+{
+    public function send(array $payload, ExecutionContext $context, array $config = []): array
+    {
+        $webhook_url = $config['webhook_url'] ?? null;
+        if (!$webhook_url) {
+            return ['success' => false, 'error' => 'Missing Slack webhook URL'];
+        }
+        
+        $message = [
+            'text' => $payload['message'] ?? '',
+            'channel' => $config['channel'] ?? '#general',
+        ];
+        
+        // Send to Slack API
+        $this->postToSlack($webhook_url, $message);
+        
+        $context->set('last_slack_sent', $payload);
+        return ['success' => true, 'channel' => 'slack'];
+    }
+}
+```
+
+Register custom channel:
+
+```php
+$channelManager->register('slack', new SlackSendChannelStrategy());
+```
+
 ## Laravel Integration
 
 Yahlox includes a Laravel service provider at `src/Laravel/YahloxServiceProvider.php`.
@@ -305,6 +508,39 @@ public function boot(NodeProcessorRegistry $registry): void
 {
     $registry->register('your_custom_type', new YourCustomProcessor());
 }
+```
+
+### Publishing Migrations
+
+Yahlox provides optional database migrations for storing workflows, execution history, and channel credentials.
+
+To publish migrations to your Laravel application:
+
+```bash
+php artisan vendor:publish --tag=yahlox-migrations
+```
+
+This creates migrations for:
+
+- **workflows** – stores workflow definitions (name, description, ReactFlow JSON, active status)
+- **workflow_executions** – tracks execution history (workflow_id, status, context, error, timestamps)
+- **send_channel_credentials** – stores API credentials for messaging channels (email, SMS, Viber, WhatsApp, Telegram, etc.)
+- **storage_channel_credentials** – stores database connection details for storage strategies (host, port, database, credentials)
+
+After publishing, run migrations:
+
+```bash
+php artisan migrate
+```
+
+You can then load workflows and credentials from the database instead of hardcoding them:
+
+```php
+$workflow = \App\Models\Workflow::where('name', 'todo_workflow')->first();
+
+$yahlox = app(\Yahlox\YahloxLibrary::class);
+$context = new ExecutionContext();
+$yahlox->run(json_decode($workflow->definition, true), $context);
 ```
 
 ## Custom Nodes

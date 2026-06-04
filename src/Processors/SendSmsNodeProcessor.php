@@ -7,27 +7,39 @@ namespace Yahlox\Processors;
 use Yahlox\Contracts\NodeProcessorInterface;
 use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
+use Yahlox\Send\SendChannelStrategyManager;
 use RuntimeException;
 
 final class SendSmsNodeProcessor implements NodeProcessorInterface
 {
+    private SendChannelStrategyManager $channelManager;
+
+    public function __construct(?SendChannelStrategyManager $channelManager = null)
+    {
+        $this->channelManager = $channelManager ?? SendChannelStrategyManager::createDefault();
+    }
+
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
         $to = $data['to'] ?? null;
         $message = $data['message'] ?? '';
+        $channel = $data['channel'] ?? 'sms';
 
         if (!$to) {
             throw new RuntimeException('SendSms node missing "to" number');
         }
 
-        $resolvedTo = $this->resolvePlaceholders($to, $context);
-        $resolvedMessage = $this->resolvePlaceholders($message, $context);
+        $payload = [
+            'to' => $this->resolvePlaceholders($to, $context),
+            'message' => $this->resolvePlaceholders($message, $context),
+        ];
 
-        $context->set("last_sms_sent", [
-            'to' => $resolvedTo,
-            'message' => $resolvedMessage,
-        ]);
+        $strategy = $this->channelManager->resolve(['channel' => $channel]);
+        $result = $strategy->send($payload, $context, $data['config'] ?? []);
+
+        $context->set('last_sms_sent', $payload);
+        $context->set('last_send_result', $result);
     }
 
     private function resolvePlaceholders(string $value, ExecutionContext $context): string

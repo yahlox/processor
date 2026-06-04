@@ -10,6 +10,7 @@ use Yahlox\Engine\WorkflowValidator;
 use Yahlox\Parser\ReactFlowParser;
 use Yahlox\Registry\NodeProcessorRegistry;
 use Yahlox\Storage\StorageStrategyManager;
+use Yahlox\Send\SendChannelStrategyManager;
 
 final class YahloxServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,10 @@ final class YahloxServiceProvider extends ServiceProvider
             return StorageStrategyManager::createDefault();
         });
 
+        $this->app->singleton(SendChannelStrategyManager::class, function () {
+            return SendChannelStrategyManager::createDefault();
+        });
+
         $this->app->singleton(WorkflowExecutor::class, function ($app) {
             return new WorkflowExecutor(
                 $app->make(NodeProcessorRegistry::class),
@@ -48,5 +53,8 @@ final class YahloxServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->publishMigrations([
+            __DIR__ . '/../../database/migrations' => database_path('migrations'),
+        ]);
     }
 }

@@ -7,30 +7,41 @@ namespace Yahlox\Processors;
 use Yahlox\Contracts\NodeProcessorInterface;
 use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
+use Yahlox\Send\SendChannelStrategyManager;
 use RuntimeException;
 
 final class SendEmailNodeProcessor implements NodeProcessorInterface
 {
+    private SendChannelStrategyManager $channelManager;
+
+    public function __construct(?SendChannelStrategyManager $channelManager = null)
+    {
+        $this->channelManager = $channelManager ?? SendChannelStrategyManager::createDefault();
+    }
+
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
         $to = $data['to'] ?? null;
         $subject = $data['subject'] ?? 'No subject';
         $body = $data['body'] ?? '';
+        $channel = $data['channel'] ?? 'email';
 
         if (!$to) {
             throw new RuntimeException('SendEmail node missing "to" address');
         }
 
-        $resolvedTo = $this->resolvePlaceholders($to, $context);
-        $resolvedSubject = $this->resolvePlaceholders($subject, $context);
-        $resolvedBody = $this->resolvePlaceholders($body, $context);
+        $payload = [
+            'to' => $this->resolvePlaceholders($to, $context),
+            'subject' => $this->resolvePlaceholders($subject, $context),
+            'body' => $this->resolvePlaceholders($body, $context),
+        ];
 
-        $context->set("last_email_sent", [
-            'to' => $resolvedTo,
-            'subject' => $resolvedSubject,
-            'body' => $resolvedBody,
-        ]);
+        $strategy = $this->channelManager->resolve(['channel' => $channel]);
+        $result = $strategy->send($payload, $context, $data['config'] ?? []);
+
+        $context->set('last_email_sent', $payload);
+        $context->set('last_send_result', $result);
     }
 
     private function resolvePlaceholders(string $value, ExecutionContext $context): string

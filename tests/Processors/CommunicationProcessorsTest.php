@@ -57,7 +57,7 @@ final class CommunicationProcessorsTest extends TestCase
 
         (new SendNotificationNodeProcessor())->process($node, $context);
         $notif = $context->get('last_notification_sent');
-        $this->assertSame('user_789', $notif['user_id']);
+        $this->assertSame('user_789', $notif['to']);
         $this->assertSame('You have 5 messages', $notif['body']);
     }
 }

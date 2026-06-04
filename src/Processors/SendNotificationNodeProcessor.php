@@ -7,30 +7,41 @@ namespace Yahlox\Processors;
 use Yahlox\Contracts\NodeProcessorInterface;
 use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
+use Yahlox\Send\SendChannelStrategyManager;
 use RuntimeException;
 
 final class SendNotificationNodeProcessor implements NodeProcessorInterface
 {
+    private SendChannelStrategyManager $channelManager;
+
+    public function __construct(?SendChannelStrategyManager $channelManager = null)
+    {
+        $this->channelManager = $channelManager ?? SendChannelStrategyManager::createDefault();
+    }
+
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
         $userId = $data['user_id'] ?? null;
         $title = $data['title'] ?? '';
         $body = $data['body'] ?? '';
+        $channel = $data['channel'] ?? 'log';
 
         if (!$userId) {
             throw new RuntimeException('SendNotification node missing user_id');
         }
 
-        $resolvedUserId = $this->resolvePlaceholders($userId, $context);
-        $resolvedTitle = $this->resolvePlaceholders($title, $context);
-        $resolvedBody = $this->resolvePlaceholders($body, $context);
+        $payload = [
+            'to' => $this->resolvePlaceholders($userId, $context),
+            'title' => $this->resolvePlaceholders($title, $context),
+            'body' => $this->resolvePlaceholders($body, $context),
+        ];
 
-        $context->set("last_notification_sent", [
-            'user_id' => $resolvedUserId,
-            'title' => $resolvedTitle,
-            'body' => $resolvedBody,
-        ]);
+        $strategy = $this->channelManager->resolve(['channel' => $channel]);
+        $result = $strategy->send($payload, $context, $data['config'] ?? []);
+
+        $context->set('last_notification_sent', $payload);
+        $context->set('last_send_result', $result);
     }
 
     private function resolvePlaceholders(string $value, ExecutionContext $context): string
