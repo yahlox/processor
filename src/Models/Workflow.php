@@ -16,6 +16,7 @@ final class Workflow extends Model
     protected $table = 'workflows';
 
     protected $fillable = [
+        'node',
         'name',
         'description',
         'nodes',
@@ -29,7 +30,7 @@ final class Workflow extends Model
         'is_active' => 'boolean',
     ];
 
-    protected static function booted(): void
+    protected static function boot(): void
     {
         static::creating(function (Workflow $workflow): void {
             if (empty($workflow->node)) {
