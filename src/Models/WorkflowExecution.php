@@ -6,6 +6,11 @@ namespace Yahlox\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Eloquent model for persisted workflow execution metadata.
+ *
+ * @package Yahlox
+ */
 final class WorkflowExecution extends Model
 {
     protected $table = 'workflow_executions';

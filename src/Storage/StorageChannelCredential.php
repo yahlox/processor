@@ -6,6 +6,11 @@ namespace Yahlox\Storage;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Eloquent model for storage channel credentials and connection details.
+ *
+ * @package Yahlox
+ */
 final class StorageChannelCredential extends Model
 {
     protected $table = 'storage_channel_credentials';

@@ -6,6 +6,11 @@ namespace Yahlox\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Represents a parsed workflow graph of nodes and edges.
+ *
+ * @package Yahlox
+ */
 final class Workflow extends Model
 {
     protected $table = 'workflows';

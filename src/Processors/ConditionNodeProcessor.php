@@ -9,8 +9,20 @@ use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
 use RuntimeException;
 
+/**
+ * Evaluates a conditional expression and stores the result in the workflow context.
+ *
+ * @package Yahlox
+ */
 final class ConditionNodeProcessor implements NodeProcessorInterface
 {
+/**
+ * Execute processor logic for the workflow node and update the execution context.
+ *
+ * @param Node $node Workflow node to process.
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return void
+ */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -33,6 +45,12 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         $context->set('flow.next_node_id', $targetId);
     }
 
+/**
+ * Evaluate.
+ * @param string $expr
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return bool
+ */
     private function evaluate(string $expr, ExecutionContext $context): bool
     {
         $expr = $this->resolvePlaceholders($expr, $context);
@@ -73,6 +91,13 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         return (bool) $result;
     }
 
+/**
+ * Resolve placeholder tokens using values from the execution context.
+ *
+ * @param string $expr Conditional expression to evaluate.
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return string
+ */
     private function resolvePlaceholders(string $expr, ExecutionContext $context): string
     {
         return preg_replace_callback('/\{([a-zA-Z0-9_.]+)\}/', function ($matches) use ($context) {
@@ -90,6 +115,11 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         }, $expr);
     }
 
+/**
+ * NormalizeExpression.
+ * @param string $expr
+ * @return string
+ */
     private function normalizeExpression(string $expr): string
     {
         $expr = preg_replace('/\bIS\s+NOT\s+NULL\b/i', 'IS_NOT_NULL', $expr);
@@ -147,6 +177,11 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         return $expr;
     }
 
+/**
+ * ConvertLikePattern.
+ * @param string $pattern
+ * @return string
+ */
     private function convertLikePattern(string $pattern): string
     {
         $pattern = substr($pattern, 1, -1);

@@ -7,6 +7,11 @@ namespace Yahlox\Engine;
 use Yahlox\Domain\Workflow;
 use Yahlox\Exceptions\InvalidWorkflowException;
 
+/**
+ * Validates workflow structure and required node configuration.
+ *
+ * @package Yahlox
+ */
 final class WorkflowValidator
 {
     public function validate(

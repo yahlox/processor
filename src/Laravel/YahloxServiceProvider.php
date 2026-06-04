@@ -12,8 +12,18 @@ use Yahlox\Registry\NodeProcessorRegistry;
 use Yahlox\Storage\StorageStrategyManager;
 use Yahlox\Send\SendChannelStrategyManager;
 
+/**
+ * Registers Yahlox services in Laravel and publishes package assets.
+ *
+ * @package Yahlox
+ */
 final class YahloxServiceProvider extends ServiceProvider
 {
+/**
+ * Register Yahlox services into the Laravel application container.
+ *
+ * @return void
+ */
     public function register(): void
     {
         $this->app->singleton(NodeProcessorRegistry::class, function () {
@@ -51,6 +61,11 @@ final class YahloxServiceProvider extends ServiceProvider
         });
     }
 
+/**
+ * Configure package publishing and load migrations when running in console.
+ *
+ * @return void
+ */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {

@@ -9,8 +9,19 @@ use Yahlox\Domain\Node;
 use Yahlox\Domain\Edge;
 use Yahlox\Domain\Workflow;
 
+/**
+ * Parses React Flow JSON into Yahlox workflow domain objects.
+ *
+ * @package Yahlox
+ */
 final class ReactFlowParser implements ParserInterface
 {
+/**
+ * Parse workflow JSON into a Yahlox workflow object.
+ *
+ * @param array $payload Data payload for the record operation.
+ * @return Workflow
+ */
     public function parse(array $payload): Workflow
     {
         $nodes = [];

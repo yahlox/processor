@@ -9,6 +9,11 @@ use Yahlox\Domain\ExecutionContext;
 use Yahlox\Parser\ReactFlowParser;
 use Yahlox\Engine\WorkflowExecutor;
 
+/**
+ * Entry point for parsing and executing Yahlox workflow JSON definitions.
+ *
+ * @package Yahlox
+ */
 final class YahloxLibrary
 {
     public function __construct(

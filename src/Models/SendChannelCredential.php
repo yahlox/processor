@@ -6,6 +6,11 @@ namespace Yahlox\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Eloquent model for send channel credentials and configuration.
+ *
+ * @package Yahlox
+ */
 final class SendChannelCredential extends Model
 {
     protected $table = 'send_channel_credentials';

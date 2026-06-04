@@ -9,8 +9,20 @@ use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
 use RuntimeException;
 
+/**
+ * Performs HTTP requests and stores the response in workflow context.
+ *
+ * @package Yahlox
+ */
 final class HttpRequestNodeProcessor implements NodeProcessorInterface
 {
+/**
+ * Execute processor logic for the workflow node and update the execution context.
+ *
+ * @param Node $node Workflow node to process.
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return void
+ */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -60,6 +72,13 @@ final class HttpRequestNodeProcessor implements NodeProcessorInterface
         }
     }
 
+/**
+ * Resolve placeholder tokens using values from the execution context.
+ *
+ * @param string $value Value to store or evaluate.
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return string
+ */
     private function resolvePlaceholders(string $value, ExecutionContext $context): string
     {
         return preg_replace_callback('/\{([a-zA-Z0-9_.]+)\}/', function ($matches) use ($context) {
@@ -67,6 +86,11 @@ final class HttpRequestNodeProcessor implements NodeProcessorInterface
         }, $value);
     }
 
+/**
+ * BuildHeaders.
+ * @param array $headers
+ * @return array
+ */
     private function buildHeaders(array $headers): array
     {
         $result = [];

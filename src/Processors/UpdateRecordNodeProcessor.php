@@ -11,17 +11,34 @@ use Yahlox\Storage\StorageHelpersTrait;
 use Yahlox\Storage\StorageStrategyManager;
 use RuntimeException;
 
+/**
+ * Updates an existing storage record from workflow node data.
+ *
+ * @package Yahlox
+ */
 final class UpdateRecordNodeProcessor implements NodeProcessorInterface
 {
     use StorageHelpersTrait;
 
     private StorageStrategyManager $storageManager;
 
+/**
+ * Construct a new UpdateRecordNodeProcessor.
+ * @param ?StorageStrategyManager $storageManager
+ * @return void
+ */
     public function __construct(?StorageStrategyManager $storageManager = null)
     {
         $this->storageManager = $storageManager ?? StorageStrategyManager::createDefault();
     }
 
+/**
+ * Execute processor logic for the workflow node and update the execution context.
+ *
+ * @param Node $node Workflow node to process.
+ * @param ExecutionContext $context Current workflow execution context.
+ * @return void
+ */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();

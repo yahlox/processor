@@ -7,6 +7,11 @@ namespace Yahlox\Contracts;
 use Yahlox\Domain\Workflow;
 use Yahlox\Domain\ExecutionContext;
 
+/**
+ * Defines the contract for workflow executor implementations.
+ *
+ * @package Yahlox
+ */
 interface WorkflowExecutorInterface
 {
     public function execute(

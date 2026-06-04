@@ -7,6 +7,11 @@ namespace Yahlox\Registry;
 use Yahlox\Contracts\NodeProcessorInterface;
 use Yahlox\Exceptions\NodeProcessorNotFoundException;
 
+/**
+ * Registers and resolves node processors by workflow node type.
+ *
+ * @package Yahlox
+ */
 final class NodeProcessorRegistry
 {
     private const PROCESSOR_NAMESPACE = 'Yahlox\\Processors\\';
@@ -41,11 +46,22 @@ final class NodeProcessorRegistry
         return $this->processors[$type];
     }
 
+/**
+ * Check whether a named instance is registered.
+ *
+ * @param string $type Processor or strategy type name.
+ * @return bool
+ */
     public function has(string $type): bool
     {
         return isset($this->processors[$type]) || $this->resolveProcessorClass($type) !== null;
     }
 
+/**
+ * AutoRegisterProcessor.
+ * @param string $type
+ * @return void
+ */
     private function autoRegisterProcessor(string $type): void
     {
         $processorClass = $this->resolveProcessorClass($type);
@@ -57,6 +73,11 @@ final class NodeProcessorRegistry
         $this->register($type, new $processorClass());
     }
 
+/**
+ * ResolveProcessorClass.
+ * @param string $type
+ * @return ?string
+ */
     private function resolveProcessorClass(string $type): ?string
     {
         $processorName = $this->normalizeProcessorName($type);
@@ -65,6 +86,11 @@ final class NodeProcessorRegistry
         return class_exists($class) ? $class : null;
     }
 
+/**
+ * NormalizeProcessorName.
+ * @param string $type
+ * @return string
+ */
     private function normalizeProcessorName(string $type): string
     {
         $normalized = str_replace(['-', '_'], ' ', $type);
