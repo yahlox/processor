@@ -32,6 +32,7 @@ final class DeleteRecordNodeProcessor implements NodeProcessorInterface
         }
 
         $resolvedId = $this->resolvePlaceholders($recordId, $context);
+        $data['config'] = $this->resolveStorageConfig($data, $context);
         $strategy = $this->storageManager->resolve($data, $context);
         $result = $strategy->delete($data['model'] ?? 'GenericRecord', $resolvedId, $context, $data);
 

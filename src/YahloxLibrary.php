@@ -21,6 +21,17 @@ final class YahloxLibrary
         array $json,
         ExecutionContext $context
     ): void {
+        if (isset($json['workflow_id'])) {
+            $context->set('workflow_id', $json['workflow_id']);
+        }
+
+        if (isset($json['storage_credentials_id'])) {
+            $context->set('storage_credentials_id', $json['storage_credentials_id']);
+        }
+
+        if (isset($json['credentials_id'])) {
+            $context->set('storage_credentials_id', $json['credentials_id']);
+        }
 
         $workflow = $this->parser->parse(
             $json

@@ -38,6 +38,7 @@ final class UpdateRecordNodeProcessor implements NodeProcessorInterface
             $resolved[$key] = $this->resolvePlaceholders($value, $context);
         }
 
+        $data['config'] = $this->resolveStorageConfig($data, $context);
         $strategy = $this->storageManager->resolve($data, $context);
         $result = $strategy->update($data['model'] ?? 'GenericRecord', $resolvedId, $resolved, $context, $data);
 

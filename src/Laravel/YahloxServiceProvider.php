@@ -55,19 +55,37 @@ final class YahloxServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $migrationsPath = __DIR__ . '/../../database/migrations';
-            
+            $modelsPath = __DIR__ . '/../../src/Models';
+
             // Get all migration files and publish them
             $migrations = glob($migrationsPath . '/*.php');
-            $publishArray = [];
-            
+            $migrationPublish = [];
+
             foreach ($migrations as $migration) {
-                $publishArray[$migration] = database_path('migrations/' . basename($migration));
+                $migrationPublish[$migration] = database_path('migrations/' . basename($migration));
             }
-            
-            if (!empty($publishArray)) {
-                $this->publishes($publishArray, 'yahlox-migrations');
+
+            if (!empty($migrationPublish)) {
+                $this->publishes($migrationPublish, 'yahlox-migrations');
             }
-            
+
+            // Publish optional model scaffolding for Laravel applications
+            $modelPublish = [];
+            $models = glob($modelsPath . '/*.php');
+
+            foreach ($models as $model) {
+                $modelPublish[$model] = app_path('Models/' . basename($model));
+            }
+
+            if (!empty($modelPublish)) {
+                $this->publishes($modelPublish, 'yahlox-models');
+            }
+
+            // Shared publish group for convenience
+            if (!empty($migrationPublish) || !empty($modelPublish)) {
+                $this->publishes(array_merge($migrationPublish, $modelPublish), 'yahlox');
+            }
+
             // Also auto-load migrations
             $this->loadMigrationsFrom($migrationsPath);
         }

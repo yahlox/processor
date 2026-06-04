@@ -167,17 +167,20 @@ $json = [
   * optional `data.storeAs`
   * optional `data.storage` – storage strategy name, e.g. `context`, `eloquent`
   * optional `data.config` – storage backend configuration (credentials, connection details)
+  * optional `data.config.credentials_id` / `data.config.storage_credentials_id` – reference a stored `storage_channel_credentials` record
 * `updateRecord` – updates a record via a storage strategy
   * `data.record_id`
   * optional `data.model`
   * `data.fields`
   * optional `data.storage`
   * optional `data.config` – storage backend configuration
+  * optional `data.config.credentials_id` / `data.config.storage_credentials_id` – reference a stored credential
 * `deleteRecord` – deletes a record via a storage strategy
   * `data.record_id`
   * optional `data.model`
   * optional `data.storage`
   * optional `data.config` – storage backend configuration
+  * optional `data.config.credentials_id` / `data.config.storage_credentials_id` – reference a stored credential
 
 * `custom` – runs a PHP callable defined in `data.callback`
 
@@ -348,6 +351,61 @@ When using database storage strategies, provide connection details via `data.con
 ]
 ```
 
+You can also reference a saved storage credential record instead of passing values inline:
+
+```php
+'config' => [
+    'credentials_id' => 1,
+]
+```
+
+If you want the workflow itself to carry the default storage credential, include `storage_credentials_id` at the top level of the workflow JSON. Yahlox will copy that value into the execution context so all `createRecord`, `updateRecord`, and `deleteRecord` nodes can inherit it when no node-specific credential is provided.
+
+```php
+$workflow = [
+    'workflow_id' => '4qafk3Acm2150',
+    'storage_credentials_id' => 1,
+    'nodes' => [
+        ['id' => 'start', 'type' => 'start'],
+        ['id' => 'validate_create', 'type' => 'condition', 'data' => [
+            'expression' => '{title} != "" && {desc} != "" && {due_date} != ""',
+            'branchMapping' => ['true' => 'create_todo', 'false' => 'validation_failed_notify'],
+        ]],
+        ['id' => 'create_todo', 'type' => 'createRecord', 'data' => [
+            'model' => 'Todo',
+            'fields' => [
+                'title' => '{title}',
+                'description' => '{desc}',
+                'due_date' => '{due_date}',
+                'status' => 'open',
+            ],
+            'storeAs' => 'created_todo',
+            'storage' => 'eloquent',
+        ]],
+        ['id' => 'created_notify', 'type' => 'sendNotification', 'data' => [
+            'user_id' => '{user_id}',
+            'title' => 'Todo created',
+            'body' => 'Todo created successfully.',
+        ]],
+        ['id' => 'validation_failed_notify', 'type' => 'sendNotification', 'data' => [
+            'user_id' => '{user_id}',
+            'title' => 'Todo validation failed',
+            'body' => 'Todo payload validation failed. Please provide title, desc, and due_date.',
+        ]],
+        ['id' => 'end', 'type' => 'end'],
+    ],
+    'edges' => [
+        ['source' => 'start', 'target' => 'validate_create'],
+        ['source' => 'validate_create', 'target' => 'create_todo'],
+        ['source' => 'validate_create', 'target' => 'validation_failed_notify'],
+        ['source' => 'create_todo', 'target' => 'created_notify'],
+        ['source' => 'create_todo', 'target' => 'end'],
+        ['source' => 'created_notify', 'target' => 'end'],
+        ['source' => 'validation_failed_notify', 'target' => 'end'],
+    ],
+];
+```
+
 ### Example: Create Todo Workflow Storage
 
 The following workflow works with `createRecord` and will store a new `Todo` record if the `Todo` model exists as an Eloquent model:
@@ -437,6 +495,27 @@ If you want to force the database connection in the node, include `storage` and 
     ],
 ]]
 ```
+
+Or reference a saved storage credential set by ID:
+
+```php
+['id' => 'create_todo', 'type' => 'createRecord', 'data' => [
+    'model' => 'Todo',
+    'storage' => 'eloquent',
+    'fields' => [
+        'title' => '{title}',
+        'description' => '{desc}',
+        'due_date' => '{due_date}',
+        'status' => 'open',
+    ],
+    'storeAs' => 'created_todo',
+    'config' => [
+        'credentials_id' => 1,
+    ],
+]]
+```
+
+Yahlox does not rely on a workflow-owned storage credential. Instead, each workflow or node can reference a shared storage credential by ID using `data.config.credentials_id`.
 
 Then run your workflow with the required context values:
 
@@ -622,12 +701,26 @@ Migrations are **automatically loaded** when Yahlox is installed. To optionally 
 php artisan vendor:publish --tag=yahlox-migrations
 ```
 
+Yahlox also includes optional Eloquent model scaffolding for Laravel applications. To publish the package models into your app:
+
+```bash
+php artisan vendor:publish --tag=yahlox-models
+```
+
+For convenience, both migrations and models can be published together with:
+
+```bash
+php artisan vendor:publish --tag=yahlox
+```
+
 This publishes migrations for:
 
 - **workflows** – stores workflow definitions (name, description, ReactFlow JSON, active status)
 - **workflow_executions** – tracks execution history (workflow_id, status, context, error, timestamps)
 - **send_channel_credentials** – stores API credentials for messaging channels (email, SMS, Viber, WhatsApp, Telegram, etc.)
 - **storage_channel_credentials** – stores database connection details for storage strategies (host, port, database, credentials)
+
+When using the published Laravel model, the package casts `connection_details` as encrypted data and hides it from model arrays/JSON.
 
 After publishing (or if using auto-loaded migrations), run:
 

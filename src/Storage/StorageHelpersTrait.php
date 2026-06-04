@@ -55,4 +55,40 @@ trait StorageHelpersTrait
         $segments = explode('\\', $className);
         return end($segments) ?: $className;
     }
+
+    private function resolveStorageConfig(array $data, ExecutionContext $context): array
+    {
+        $config = $data['config'] ?? [];
+        $credentialsId = $config['credentials_id'] ?? $config['storage_credentials_id'] ?? null;
+
+        if ($credentialsId === null) {
+            $credentialsId = $context->get('storage_credentials_id');
+        }
+
+        if ($credentialsId !== null) {
+            $credentialsId = (int)$credentialsId;
+            $config = array_merge($this->loadStorageCredential($credentialsId), $config);
+            $config['credentials_id'] = $credentialsId;
+        }
+
+        return $config;
+    }
+
+    private function loadStorageCredential(int $credentialId): array
+    {
+        $credentialClass = '\\Yahlox\\Models\\StorageChannelCredential';
+
+        if (!class_exists($credentialClass)) {
+            return [];
+        }
+
+
+        $credential = $credentialClass::find($credentialId);
+
+        if ($credential === null || !$credential->is_active) {
+            return [];
+        }
+
+        return $credential->connection_details ?? [];
+    }
 }

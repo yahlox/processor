@@ -32,6 +32,7 @@ final class CreateRecordNodeProcessor implements NodeProcessorInterface
             $resolved[$key] = $this->resolvePlaceholders($value, $context);
         }
 
+        $data['config'] = $this->resolveStorageConfig($data, $context);
         $strategy = $this->storageManager->resolve($data, $context);
         $result = $strategy->create($model, $resolved, $context, $data);
 
