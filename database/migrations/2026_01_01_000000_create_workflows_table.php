@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('workflows', function (Blueprint $table) {
             $table->id();
+            $table->string('node', 36)->unique()->index();
             $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->json('definition')->comment('ReactFlow JSON with nodes and edges');
