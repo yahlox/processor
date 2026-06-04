@@ -31,6 +31,22 @@ final class CrudProcessorsTest extends TestCase
         $this->assertNotNull($context->get('last_created_record'));
     }
 
+    public function testCreateRecordStoresStoreAsId(): void
+    {
+        $context = new ExecutionContext();
+        $node = new Node('c2', 'create_record', [
+            'model' => 'User',
+            'fields' => ['name' => 'John'],
+            'storeAs' => 'new_user',
+        ]);
+
+        (new CreateRecordNodeProcessor())->process($node, $context);
+
+        $created = $context->get('last_created_record');
+        $this->assertSame($created['id'], $context->get('new_user_id'));
+        $this->assertSame(['name' => 'John'], $context->get('new_user'));
+    }
+
     public function testUpdateRecord(): void
     {
         $context = new ExecutionContext();

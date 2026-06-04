@@ -9,6 +9,7 @@ use Yahlox\Engine\WorkflowExecutor;
 use Yahlox\Engine\WorkflowValidator;
 use Yahlox\Parser\ReactFlowParser;
 use Yahlox\Registry\NodeProcessorRegistry;
+use Yahlox\Storage\StorageStrategyManager;
 
 final class YahloxServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,10 @@ final class YahloxServiceProvider extends ServiceProvider
 
         $this->app->singleton(WorkflowValidator::class, function () {
             return new WorkflowValidator();
+        });
+
+        $this->app->singleton(StorageStrategyManager::class, function () {
+            return StorageStrategyManager::createDefault();
         });
 
         $this->app->singleton(WorkflowExecutor::class, function ($app) {

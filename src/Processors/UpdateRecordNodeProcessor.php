@@ -7,10 +7,21 @@ namespace Yahlox\Processors;
 use Yahlox\Contracts\NodeProcessorInterface;
 use Yahlox\Domain\ExecutionContext;
 use Yahlox\Domain\Node;
+use Yahlox\Storage\StorageHelpersTrait;
+use Yahlox\Storage\StorageStrategyManager;
 use RuntimeException;
 
 final class UpdateRecordNodeProcessor implements NodeProcessorInterface
 {
+    use StorageHelpersTrait;
+
+    private StorageStrategyManager $storageManager;
+
+    public function __construct(?StorageStrategyManager $storageManager = null)
+    {
+        $this->storageManager = $storageManager ?? StorageStrategyManager::createDefault();
+    }
+
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -21,23 +32,18 @@ final class UpdateRecordNodeProcessor implements NodeProcessorInterface
             throw new RuntimeException('UpdateRecord node missing record_id');
         }
 
+        $resolvedId = $this->resolvePlaceholders($recordId, $context);
         $resolved = [];
         foreach ($fields as $key => $value) {
             $resolved[$key] = $this->resolvePlaceholders($value, $context);
         }
 
-        // Simulate update – store updated data in context
-        $context->set("updated_record_{$recordId}", $resolved);
-        $context->set("last_updated_record", ['id' => $recordId, 'data' => $resolved]);
-    }
+        $strategy = $this->storageManager->resolve($data, $context);
+        $result = $strategy->update($data['model'] ?? 'GenericRecord', $resolvedId, $resolved, $context, $data);
 
-    private function resolvePlaceholders($value, ExecutionContext $context): mixed
-    {
-        if (!is_string($value)) {
-            return $value;
+        if (!($result['success'] ?? false)) {
+            $context->set("updated_record_{$resolvedId}", $resolved);
+            $context->set('last_updated_record', ['id' => $resolvedId, 'data' => $resolved]);
         }
-        return preg_replace_callback('/\{([a-zA-Z0-9_.]+)\}/', function ($matches) use ($context) {
-            return $context->get($matches[1]) ?? '';
-        }, $value);
     }
 }

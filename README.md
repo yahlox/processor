@@ -28,6 +28,51 @@ It is designed for business process automation, backend orchestration, and integ
 composer install
 ```
 
+## Usage
+
+```php
+use Yahlox\YahloxLibrary;
+use Yahlox\Domain\ExecutionContext;
+
+$workflow = [
+    'nodes' => [
+        ['id' => 'start', 'type' => 'start'],
+        ['id' => 'save_todo', 'type' => 'createRecord', 'data' => [
+            'model' => 'Todo',
+            'storage' => 'eloquent',
+            'fields' => [
+                'title' => '{title}',
+                'description' => '{description}',
+                'due_date' => '{due_date}',
+            ],
+            'storeAs' => 'new_todo',
+        ]],
+        ['id' => 'end', 'type' => 'end'],
+    ],
+    'edges' => [
+        ['source' => 'start', 'target' => 'save_todo'],
+        ['source' => 'save_todo', 'target' => 'end'],
+    ],
+];
+
+$context = new ExecutionContext();
+$context->set('title', 'Write docs');
+$context->set('description', 'Update README usage section');
+$context->set('due_date', '2026-06-30');
+
+$yahlox = new YahloxLibrary(
+    new Yahlox\Parser\ReactFlowParser(),
+    new Yahlox\Engine\WorkflowExecutor(new Yahlox\Registry\NodeProcessorRegistry(), new Yahlox\Engine\WorkflowValidator())
+);
+
+$yahlox->run($workflow, $context);
+
+$newTodo = $context->get('new_todo');
+```
+
+* Use `data.storage` to select a named storage strategy such as `context` or `eloquent`.
+* If `data.storage` is omitted, the engine chooses `eloquent` automatically when `data.model` resolves to an Eloquent model class; otherwise it falls back to `context`.
+
 ## Run Tests
 
 ```bash
@@ -103,15 +148,28 @@ $json = [
 
 ### CRUD-style record handling
 
-* `createRecord` – creates a simulated record and stores it in context
+* `createRecord` – writes a record via a pluggable storage strategy
   * `data.model` – model name (default: `GenericRecord`)
   * `data.fields` – payload fields with `{placeholder}` support
   * optional `data.storeAs`
-* `updateRecord` – updates a simulated record in context
+  * optional `data.storage` – storage strategy name, e.g. `context`, `eloquent`
+* `updateRecord` – updates a record via a storage strategy
   * `data.record_id`
+  * optional `data.model`
   * `data.fields`
-* `deleteRecord` – deletes a simulated record in context
+  * optional `data.storage`
+* `deleteRecord` – deletes a record via a storage strategy
   * `data.record_id`
+  * optional `data.model`
+  * optional `data.storage`
+
+Storage strategy selection rules:
+
+* explicit `data.storage` takes precedence when a registered strategy exists
+* if `data.model` resolves to an Eloquent class, the `eloquent` strategy is chosen automatically
+* otherwise the default `context` strategy simulates persistence in workflow context
+
+You can add new storage strategies for MySQL, SQLite, PostgreSQL, NoSQL, Google Drive / Excel, MS Access, or any other backend by implementing `Yahlox\Contracts\StorageStrategyInterface` and registering the strategy with `StorageStrategyManager`.
 
 ### Extension
 
@@ -156,6 +214,7 @@ $json = [
 
         ['id' => 'create_todo', 'type' => 'createRecord', 'data' => [
             'model' => 'Todo',
+            'storage' => 'eloquent',
             'fields' => [
                 'title' => '{title}',
                 'description' => '{description}',
@@ -218,6 +277,8 @@ $json = [
         ['source' => 'validation_failed_notify', 'target' => 'end'],
     ],
 ];
+
+
 ```
 
 This example demonstrates:
@@ -232,7 +293,6 @@ This example demonstrates:
 
 Yahlox includes a Laravel service provider at `src/Laravel/YahloxServiceProvider.php`.
 It binds the core engine services and enables `YahloxLibrary` injection in your application.
-
 Register custom processors by binding them to `NodeProcessorRegistry` in your service provider.
 
 Example:
@@ -293,7 +353,7 @@ A small benchmark script is provided at `scripts/benchmark.php` to measure parse
 Run with defaults (20k iterations):
 
 ```bash
-php scripts/benchmark.php 20000 1000
+php scripts/benchmark.php 10000 1000
 ```
 
 Or via Composer script:

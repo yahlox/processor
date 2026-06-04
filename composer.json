@@ -11,7 +11,8 @@
   "require": {
     "php": "^8.4",
     "illuminate/support": "^13.0",
-    "illuminate/container": "^13.0"
+    "illuminate/container": "^13.0",
+    "illuminate/database": "^13.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^13.0"
