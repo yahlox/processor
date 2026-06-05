@@ -19,23 +19,23 @@ final class SendSmsNodeProcessor implements NodeProcessorInterface
 {
     private SendChannelStrategyManager $channelManager;
 
-/**
- * Construct a new SendSmsNodeProcessor.
- * @param ?SendChannelStrategyManager $channelManager
- * @return void
- */
+    /**
+     * Construct a new SendSmsNodeProcessor.
+     * @param ?SendChannelStrategyManager $channelManager
+     * @return void
+     */
     public function __construct(?SendChannelStrategyManager $channelManager = null)
     {
         $this->channelManager = $channelManager ?? SendChannelStrategyManager::createDefault();
     }
 
-/**
- * Execute processor logic for the workflow node and update the execution context.
- *
- * @param Node $node Workflow node to process.
- * @param ExecutionContext $context Current workflow execution context.
- * @return void
- */
+    /**
+     * Execute processor logic for the workflow node and update the execution context.
+     *
+     * @param Node $node Workflow node to process.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return void
+     */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -59,13 +59,13 @@ final class SendSmsNodeProcessor implements NodeProcessorInterface
         $context->set('last_send_result', $result);
     }
 
-/**
- * Resolve placeholder tokens using values from the execution context.
- *
- * @param string $value Value to store or evaluate.
- * @param ExecutionContext $context Current workflow execution context.
- * @return string
- */
+    /**
+     * Resolve placeholder tokens using values from the execution context.
+     *
+     * @param string $value Value to store or evaluate.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return string
+     */
     private function resolvePlaceholders(string $value, ExecutionContext $context): string
     {
         return preg_replace_callback('/\{([a-zA-Z0-9_.]+)\}/', function ($matches) use ($context) {

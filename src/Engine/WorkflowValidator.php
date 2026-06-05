@@ -104,7 +104,7 @@ final class WorkflowValidator
      */
     private function validateEdges(Workflow $workflow): void
     {
-        $nodeIds = array_map(fn($n) => $n->id(), $workflow->nodes());
+        $nodeIds = array_map(fn ($n) => $n->id(), $workflow->nodes());
         $nodeIdSet = array_flip($nodeIds);
 
         foreach ($workflow->edges() as $edge) {
@@ -227,7 +227,7 @@ final class WorkflowValidator
 
         // Check all reachable nodes can reach an end node
         foreach ($reachable as $nodeId => $_) {
-            if (!$this->canReachEndNode($nodeId, $workflow)) {
+            if (!$this->canReachEndNode((string)$nodeId, $workflow)) {
                 throw new InvalidWorkflowException(
                     "Node '{$nodeId}' cannot reach any end node."
                 );
@@ -245,7 +245,7 @@ final class WorkflowValidator
     private function canReachEndNode(string $nodeId, Workflow $workflow): bool
     {
         $node = $workflow->getNode($nodeId);
-        
+
         if ($node->type() === 'end') {
             return true;
         }

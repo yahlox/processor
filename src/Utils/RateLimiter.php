@@ -27,7 +27,7 @@ final class RateLimiter
     public function isAllowed(string $key, int $limit, int $windowSeconds): bool
     {
         $now = time();
-        
+
         // Initialize if not exists
         if (!isset($this->counters[$key])) {
             $this->counters[$key] = 0;
@@ -124,7 +124,7 @@ final class RetryPolicy
 
                 if ($attempt < $this->maxAttempts && $this->shouldRetry($e)) {
                     $delayMs = $this->calculateDelay($attempt);
-                    
+
                     if ($onRetry !== null) {
                         $onRetry($attempt, $delayMs, $e);
                     }

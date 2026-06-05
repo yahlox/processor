@@ -22,23 +22,23 @@ final class DeleteRecordNodeProcessor implements NodeProcessorInterface
 
     private StorageStrategyManager $storageManager;
 
-/**
- * Construct a new DeleteRecordNodeProcessor.
- * @param ?StorageStrategyManager $storageManager
- * @return void
- */
+    /**
+     * Construct a new DeleteRecordNodeProcessor.
+     * @param ?StorageStrategyManager $storageManager
+     * @return void
+     */
     public function __construct(?StorageStrategyManager $storageManager = null)
     {
         $this->storageManager = $storageManager ?? StorageStrategyManager::createDefault();
     }
 
-/**
- * Execute processor logic for the workflow node and update the execution context.
- *
- * @param Node $node Workflow node to process.
- * @param ExecutionContext $context Current workflow execution context.
- * @return void
- */
+    /**
+     * Execute processor logic for the workflow node and update the execution context.
+     *
+     * @param Node $node Workflow node to process.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return void
+     */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();

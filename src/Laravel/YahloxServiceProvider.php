@@ -19,11 +19,11 @@ use Yahlox\Send\SendChannelStrategyManager;
  */
 final class YahloxServiceProvider extends ServiceProvider
 {
-/**
- * Register Yahlox services into the Laravel application container.
- *
- * @return void
- */
+    /**
+     * Register Yahlox services into the Laravel application container.
+     *
+     * @return void
+     */
     public function register(): void
     {
         $this->app->singleton(NodeProcessorRegistry::class, function () {
@@ -62,11 +62,11 @@ final class YahloxServiceProvider extends ServiceProvider
         });
     }
 
-/**
- * Configure package publishing and load migrations when running in console.
- *
- * @return void
- */
+    /**
+     * Configure package publishing and load migrations when running in console.
+     *
+     * @return void
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {

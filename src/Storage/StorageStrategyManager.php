@@ -20,12 +20,12 @@ final class StorageStrategyManager
     private array $strategies = [];
     private string $defaultStrategy;
 
-/**
- * Construct a new StorageStrategyManager.
- * @param array $strategies
- * @param string $defaultStrategy
- * @return void
- */
+    /**
+     * Construct a new StorageStrategyManager.
+     * @param array $strategies
+     * @param string $defaultStrategy
+     * @return void
+     */
     public function __construct(array $strategies = [], string $defaultStrategy = 'context')
     {
         foreach ($strategies as $name => $strategy) {
@@ -35,11 +35,11 @@ final class StorageStrategyManager
         $this->defaultStrategy = $defaultStrategy;
     }
 
-/**
- * Create the default manager with built-in strategies.
- *
- * @return self
- */
+    /**
+     * Create the default manager with built-in strategies.
+     *
+     * @return self
+     */
     public static function createDefault(): self
     {
         return new self([
@@ -48,24 +48,24 @@ final class StorageStrategyManager
         ], 'context');
     }
 
-/**
- * Register a strategy by alias.
- *
- * @param string $name Registry or strategy name.
- * @param StorageStrategyInterface $strategy Resolved strategy instance.
- * @return void
- */
+    /**
+     * Register a strategy by alias.
+     *
+     * @param string $name Registry or strategy name.
+     * @param StorageStrategyInterface $strategy Resolved strategy instance.
+     * @return void
+     */
     public function register(string $name, StorageStrategyInterface $strategy): void
     {
         $this->strategies[$name] = $strategy;
     }
 
-/**
- * Return the named registered strategy.
- *
- * @param string $name Registry or strategy name.
- * @return StorageStrategyInterface
- */
+    /**
+     * Return the named registered strategy.
+     *
+     * @param string $name Registry or strategy name.
+     * @return StorageStrategyInterface
+     */
     public function get(string $name): StorageStrategyInterface
     {
         if (!isset($this->strategies[$name])) {
@@ -75,24 +75,24 @@ final class StorageStrategyManager
         return $this->strategies[$name];
     }
 
-/**
- * Check whether a named instance is registered.
- *
- * @param string $name Registry or strategy name.
- * @return bool
- */
+    /**
+     * Check whether a named instance is registered.
+     *
+     * @param string $name Registry or strategy name.
+     * @return bool
+     */
     public function has(string $name): bool
     {
         return isset($this->strategies[$name]);
     }
 
-/**
- * Resolve the correct strategy for the given workflow node data and context.
- *
- * @param array $data Workflow node data used for resolution.
- * @param ExecutionContext $context Current workflow execution context.
- * @return StorageStrategyInterface
- */
+    /**
+     * Resolve the correct strategy for the given workflow node data and context.
+     *
+     * @param array $data Workflow node data used for resolution.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return StorageStrategyInterface
+     */
     public function resolve(array $data, ExecutionContext $context): StorageStrategyInterface
     {
         $storageName = $data['storage'] ?? null;

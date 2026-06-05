@@ -16,13 +16,13 @@ use RuntimeException;
  */
 final class ConditionNodeProcessor implements NodeProcessorInterface
 {
-/**
- * Execute processor logic for the workflow node and update the execution context.
- *
- * @param Node $node Workflow node to process.
- * @param ExecutionContext $context Current workflow execution context.
- * @return void
- */
+    /**
+     * Execute processor logic for the workflow node and update the execution context.
+     *
+     * @param Node $node Workflow node to process.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return void
+     */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -45,12 +45,12 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         $context->set('flow.next_node_id', $targetId);
     }
 
-/**
- * Evaluate.
- * @param string $expr
- * @param ExecutionContext $context Current workflow execution context.
- * @return bool
- */
+    /**
+     * Evaluate.
+     * @param string $expr
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return bool
+     */
     private function evaluate(string $expr, ExecutionContext $context): bool
     {
         $expr = $this->resolvePlaceholders($expr, $context);
@@ -91,13 +91,13 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         return (bool) $result;
     }
 
-/**
- * Resolve placeholder tokens using values from the execution context.
- *
- * @param string $expr Conditional expression to evaluate.
- * @param ExecutionContext $context Current workflow execution context.
- * @return string
- */
+    /**
+     * Resolve placeholder tokens using values from the execution context.
+     *
+     * @param string $expr Conditional expression to evaluate.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return string
+     */
     private function resolvePlaceholders(string $expr, ExecutionContext $context): string
     {
         return preg_replace_callback('/\{([a-zA-Z0-9_.]+)\}/', function ($matches) use ($context) {
@@ -115,11 +115,11 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
         }, $expr);
     }
 
-/**
- * NormalizeExpression.
- * @param string $expr
- * @return string
- */
+    /**
+     * NormalizeExpression.
+     * @param string $expr
+     * @return string
+     */
     private function normalizeExpression(string $expr): string
     {
         $expr = preg_replace('/\bIS\s+NOT\s+NULL\b/i', 'IS_NOT_NULL', $expr);
@@ -134,54 +134,54 @@ final class ConditionNodeProcessor implements NodeProcessorInterface
 
         $expr = preg_replace_callback(
             '/(' . $valueExpr . ')\s+NOT_IN\s*\(\s*(.*?)\s*\)/i',
-            fn($matches) => '!in_array(' . $matches[1] . ', [' . $matches[2] . '], true)',
+            fn ($matches) => '!in_array(' . $matches[1] . ', [' . $matches[2] . '], true)',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/(' . $valueExpr . ')\s+IN\s*\(\s*(.*?)\s*\)/i',
-            fn($matches) => 'in_array(' . $matches[1] . ', [' . $matches[2] . '], true)',
+            fn ($matches) => 'in_array(' . $matches[1] . ', [' . $matches[2] . '], true)',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/(' . $valueExpr . ')\s+NOT_LIKE\s+(' . $valueExpr . ')/i',
-            fn($matches) => '!fnmatch(' . $this->convertLikePattern($matches[2]) . ', ' . $matches[1] . ')',
+            fn ($matches) => '!fnmatch(' . $this->convertLikePattern($matches[2]) . ', ' . $matches[1] . ')',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/(' . $valueExpr . ')\s+LIKE\s+(' . $valueExpr . ')/i',
-            fn($matches) => 'fnmatch(' . $this->convertLikePattern($matches[2]) . ', ' . $matches[1] . ')',
+            fn ($matches) => 'fnmatch(' . $this->convertLikePattern($matches[2]) . ', ' . $matches[1] . ')',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/(' . $valueExpr . ')\s+BETWEEN\s+(' . $valueExpr . ')\s+AND\s+(' . $valueExpr . ')/i',
-            fn($matches) => '(' . $matches[1] . ' >= ' . $matches[2] . ' && ' . $matches[1] . ' <= ' . $matches[3] . ')',
+            fn ($matches) => '(' . $matches[1] . ' >= ' . $matches[2] . ' && ' . $matches[1] . ' <= ' . $matches[3] . ')',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/([a-zA-Z0-9_"\']+)\s+IS_NOT_NULL\b/i',
-            fn($matches) => '(' . $matches[1] . ' !== null)',
+            fn ($matches) => '(' . $matches[1] . ' !== null)',
             $expr
         );
 
         $expr = preg_replace_callback(
             '/([a-zA-Z0-9_"\']+)\s+IS_NULL\b/i',
-            fn($matches) => '(' . $matches[1] . ' === null)',
+            fn ($matches) => '(' . $matches[1] . ' === null)',
             $expr
         );
 
         return $expr;
     }
 
-/**
- * ConvertLikePattern.
- * @param string $pattern
- * @return string
- */
+    /**
+     * ConvertLikePattern.
+     * @param string $pattern
+     * @return string
+     */
     private function convertLikePattern(string $pattern): string
     {
         $pattern = substr($pattern, 1, -1);

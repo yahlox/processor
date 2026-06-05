@@ -14,13 +14,13 @@ use Yahlox\Domain\ExecutionContext;
  */
 final class WhatsAppSendChannelStrategy implements SendChannelStrategyInterface
 {
-/**
- * Send.
- * @param array $payload Data payload for the record operation.
- * @param ExecutionContext $context Current workflow execution context.
- * @param array $config Configuration block from the workflow node.
- * @return array
- */
+    /**
+     * Send.
+     * @param array $payload Data payload for the record operation.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @param array $config Configuration block from the workflow node.
+     * @return array
+     */
     public function send(array $payload, ExecutionContext $context, array $config = []): array
     {
         $to = $payload['to'] ?? null;

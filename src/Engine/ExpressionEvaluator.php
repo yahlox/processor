@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yahlox\Engine;
 
+use Yahlox\Contracts\ExpressionEvaluatorInterface;
 use Yahlox\Domain\ExecutionContext;
 use RuntimeException;
 
@@ -17,7 +18,7 @@ use RuntimeException;
  *
  * @package Yahlox
  */
-final class ExpressionEvaluator
+final class ExpressionEvaluator implements ExpressionEvaluatorInterface
 {
     private const ALLOWED_FUNCTIONS = [
         'strlen', 'trim', 'strtoupper', 'strtolower', 'abs', 'round', 'floor', 'ceil',
@@ -36,7 +37,7 @@ final class ExpressionEvaluator
     {
         return preg_replace_callback(
             '/\{([a-zA-Z_][a-zA-Z0-9_\.]*(?:\[[^\]]+\])*)\}/',
-            fn($matches) => $this->resolveVariable($matches[1], $context),
+            fn ($matches) => $this->resolveVariable($matches[1], $context),
             $expression
         ) ?? $expression;
     }
@@ -85,7 +86,7 @@ final class ExpressionEvaluator
     {
         // Parse access path like [0] or .property or [key]
         $pattern = '/(\[\s*([^\]]+)\s*\]|\.([a-zA-Z_][a-zA-Z0-9_]*))/';
-        
+
         preg_match_all($pattern, $accessPath, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {

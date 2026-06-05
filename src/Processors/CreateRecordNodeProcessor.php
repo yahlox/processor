@@ -85,13 +85,13 @@ final class CreateRecordNodeProcessor implements NodeProcessorInterface
             $resolved = [];
             foreach ($fields as $key => $value) {
                 $resolvedValue = $this->expressionEvaluator->evaluate($value, $context);
-                
+
                 // Sanitize based on field type if specified
                 if (isset($data['fieldTypes'][$key])) {
                     $fieldType = $data['fieldTypes'][$key];
                     $resolvedValue = InputSanitizer::sanitize($resolvedValue, $fieldType);
                 }
-                
+
                 $resolved[$key] = $resolvedValue;
             }
 
@@ -214,7 +214,7 @@ final class CreateRecordNodeProcessor implements NodeProcessorInterface
             return;
         }
 
-        $compensation = function(ExecutionContext $ctx) use ($recordId, $compensationHandler) {
+        $compensation = function (ExecutionContext $ctx) use ($recordId, $compensationHandler) {
             // Call the compensation handler
             if (function_exists($compensationHandler)) {
                 $compensationHandler($recordId, $ctx);

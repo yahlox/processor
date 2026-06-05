@@ -13,11 +13,11 @@ use Yahlox\Domain\Workflow;
  */
 interface ParserInterface
 {
-/**
- * Parse workflow JSON into a Yahlox workflow object.
- *
- * @param array $payload Data payload for the record operation.
- * @return Workflow
- */
+    /**
+     * Parse workflow JSON into a Yahlox workflow object.
+     *
+     * @param array $payload Data payload for the record operation.
+     * @return Workflow
+     */
     public function parse(array $payload): Workflow;
 }

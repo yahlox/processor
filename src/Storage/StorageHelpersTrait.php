@@ -14,13 +14,13 @@ use Yahlox\Domain\ExecutionContext;
  */
 trait StorageHelpersTrait
 {
-/**
- * Resolve placeholder tokens using values from the execution context.
- *
- * @param mixed $value Value to store or evaluate.
- * @param ExecutionContext $context Current workflow execution context.
- * @return mixed
- */
+    /**
+     * Resolve placeholder tokens using values from the execution context.
+     *
+     * @param mixed $value Value to store or evaluate.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return mixed
+     */
     private function resolvePlaceholders(mixed $value, ExecutionContext $context): mixed
     {
         if (!is_string($value)) {
@@ -32,12 +32,12 @@ trait StorageHelpersTrait
         }, $value);
     }
 
-/**
- * Resolve a short model name to a fully qualified class name.
- *
- * @param string $modelName Short model name to resolve to a class.
- * @return ?string
- */
+    /**
+     * Resolve a short model name to a fully qualified class name.
+     *
+     * @param string $modelName Short model name to resolve to a class.
+     * @return ?string
+     */
     private function guessModelClass(string $modelName): ?string
     {
         if (class_exists($modelName)) {
@@ -59,12 +59,12 @@ trait StorageHelpersTrait
         return null;
     }
 
-/**
- * Determine if the resolved class extends the Eloquent model base.
- *
- * @param string $className Fully qualified class name to inspect.
- * @return bool
- */
+    /**
+     * Determine if the resolved class extends the Eloquent model base.
+     *
+     * @param string $className Fully qualified class name to inspect.
+     * @return bool
+     */
     private function isEloquentModelClass(string $className): bool
     {
         if (!class_exists($className) || !class_exists(EloquentModel::class)) {
@@ -74,25 +74,25 @@ trait StorageHelpersTrait
         return is_subclass_of($className, EloquentModel::class);
     }
 
-/**
- * Return the short class name from a fully qualified model name.
- *
- * @param string $className Fully qualified class name to inspect.
- * @return string
- */
+    /**
+     * Return the short class name from a fully qualified model name.
+     *
+     * @param string $className Fully qualified class name to inspect.
+     * @return string
+     */
     private function getShortModelName(string $className): string
     {
         $segments = explode('\\', $className);
         return end($segments) ?: $className;
     }
 
-/**
- * Perform the resolveStorageConfig operation.
- *
- * @param array $data Workflow node data used for resolution.
- * @param ExecutionContext $context Current workflow execution context.
- * @return array
- */
+    /**
+     * Perform the resolveStorageConfig operation.
+     *
+     * @param array $data Workflow node data used for resolution.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return array
+     */
     private function resolveStorageConfig(array $data, ExecutionContext $context): array
     {
         $config = $data['config'] ?? [];
@@ -111,12 +111,12 @@ trait StorageHelpersTrait
         return $config;
     }
 
-/**
- * Load connection details from a storage credential record.
- *
- * @param int $credentialId Stored credential identifier.
- * @return array
- */
+    /**
+     * Load connection details from a storage credential record.
+     *
+     * @param int $credentialId Stored credential identifier.
+     * @return array
+     */
     private function loadStorageCredential(int $credentialId): array
     {
         $credentialClass = '\\Yahlox\\Models\\StorageChannelCredential';

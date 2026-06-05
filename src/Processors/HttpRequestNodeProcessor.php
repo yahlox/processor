@@ -101,7 +101,7 @@ final class HttpRequestNodeProcessor implements NodeProcessorInterface
         // Execute with retry logic
         try {
             $response = $this->retryPolicy->execute(
-                fn() => $this->executeRequest(
+                fn () => $this->executeRequest(
                     $resolvedUrl,
                     $method,
                     $resolvedHeaders,
@@ -109,7 +109,7 @@ final class HttpRequestNodeProcessor implements NodeProcessorInterface
                     $timeout,
                     $connectTimeout
                 ),
-                fn($attempt, $delay) => $this->logger->info(
+                fn ($attempt, $delay) => $this->logger->info(
                     "HTTP request retry attempt {$attempt}, delay {$delay}ms",
                     ['url' => $resolvedUrl]
                 )
@@ -234,7 +234,7 @@ final class HttpRequestNodeProcessor implements NodeProcessorInterface
         foreach ($headers as $key => $value) {
             $key = trim((string)$key);
             $value = trim((string)$value);
-            
+
             if (!empty($key) && !empty($value)) {
                 $result[] = "{$key}: {$value}";
             }

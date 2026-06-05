@@ -60,7 +60,7 @@ final class WorkflowExecutor implements WorkflowExecutorInterface
 
         try {
             $this->validator->validate($workflow);
-            
+
             $currentNode = $workflow->getStartNode();
             $visitedNodes = [];
             $maxIterations = 10000; // Prevent infinite loops
@@ -139,9 +139,10 @@ final class WorkflowExecutor implements WorkflowExecutorInterface
     private function resolveNextNode(Node $currentNode, Workflow $workflow, ExecutionContext $context): ?Node
     {
         // Check if explicit next node was set (for conditional flows)
-        $explicitNext = $context->get('__next_node_id');
+        $explicitNext = $context->get('__next_node_id') ?? $context->get('flow.next_node_id');
         if ($explicitNext !== null) {
             $context->set('__next_node_id', null);
+            $context->set('flow.next_node_id', null);
             return $workflow->getNode((string)$explicitNext);
         }
 
@@ -175,7 +176,7 @@ final class WorkflowExecutor implements WorkflowExecutorInterface
         // In production, implement full conditional expression evaluation
         foreach ($edges as $edge) {
             $edgeData = $edge->metadata() ?? [];
-            
+
             // If no condition, it's a default edge
             if (empty($edgeData['condition'])) {
                 return $workflow->getNode($edge->target());

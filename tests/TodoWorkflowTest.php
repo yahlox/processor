@@ -49,6 +49,8 @@ final class TodoWorkflowTest extends TestCase
             ],
             'edges' => [
                 ['source' => 'start', 'target' => 'check_due'],
+                ['source' => 'check_due', 'target' => 'notify_overdue', 'data' => ['condition' => 'true']],
+                ['source' => 'check_due', 'target' => 'update_todo', 'data' => ['condition' => 'false']],
                 ['source' => 'notify_overdue', 'target' => 'end'],
                 ['source' => 'update_todo', 'target' => 'end'],
             ],

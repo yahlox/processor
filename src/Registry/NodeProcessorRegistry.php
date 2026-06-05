@@ -46,22 +46,22 @@ final class NodeProcessorRegistry
         return $this->processors[$type];
     }
 
-/**
- * Check whether a named instance is registered.
- *
- * @param string $type Processor or strategy type name.
- * @return bool
- */
+    /**
+     * Check whether a named instance is registered.
+     *
+     * @param string $type Processor or strategy type name.
+     * @return bool
+     */
     public function has(string $type): bool
     {
         return isset($this->processors[$type]) || $this->resolveProcessorClass($type) !== null;
     }
 
-/**
- * AutoRegisterProcessor.
- * @param string $type
- * @return void
- */
+    /**
+     * AutoRegisterProcessor.
+     * @param string $type
+     * @return void
+     */
     private function autoRegisterProcessor(string $type): void
     {
         $processorClass = $this->resolveProcessorClass($type);
@@ -73,11 +73,11 @@ final class NodeProcessorRegistry
         $this->register($type, new $processorClass());
     }
 
-/**
- * ResolveProcessorClass.
- * @param string $type
- * @return ?string
- */
+    /**
+     * ResolveProcessorClass.
+     * @param string $type
+     * @return ?string
+     */
     private function resolveProcessorClass(string $type): ?string
     {
         $processorName = $this->normalizeProcessorName($type);
@@ -86,11 +86,11 @@ final class NodeProcessorRegistry
         return class_exists($class) ? $class : null;
     }
 
-/**
- * NormalizeProcessorName.
- * @param string $type
- * @return string
- */
+    /**
+     * NormalizeProcessorName.
+     * @param string $type
+     * @return string
+     */
     private function normalizeProcessorName(string $type): string
     {
         $normalized = str_replace(['-', '_'], ' ', $type);

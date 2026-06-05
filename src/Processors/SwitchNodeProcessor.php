@@ -16,13 +16,13 @@ use RuntimeException;
  */
 final class SwitchNodeProcessor implements NodeProcessorInterface
 {
-/**
- * Execute processor logic for the workflow node and update the execution context.
- *
- * @param Node $node Workflow node to process.
- * @param ExecutionContext $context Current workflow execution context.
- * @return void
- */
+    /**
+     * Execute processor logic for the workflow node and update the execution context.
+     *
+     * @param Node $node Workflow node to process.
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return void
+     */
     public function process(Node $node, ExecutionContext $context): void
     {
         $data = $node->data();
@@ -43,12 +43,12 @@ final class SwitchNodeProcessor implements NodeProcessorInterface
         $context->set('flow.next_node_id', $targetId);
     }
 
-/**
- * EvaluateExpression.
- * @param string $expr
- * @param ExecutionContext $context Current workflow execution context.
- * @return mixed
- */
+    /**
+     * EvaluateExpression.
+     * @param string $expr
+     * @param ExecutionContext $context Current workflow execution context.
+     * @return mixed
+     */
     private function evaluateExpression(string $expr, ExecutionContext $context): mixed
     {
         // Replace {variable} placeholders

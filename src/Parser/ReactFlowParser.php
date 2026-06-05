@@ -48,7 +48,7 @@ final class ReactFlowParser implements ParserInterface
         // Parse nodes
         foreach ($payload['nodes'] ?? [] as $item) {
             $this->validateNodeStructure($item);
-            
+
             $nodes[] = new Node(
                 id: (string)$item['id'],
                 type: (string)$item['type'],
@@ -61,7 +61,7 @@ final class ReactFlowParser implements ParserInterface
         // Parse edges
         foreach ($payload['edges'] ?? [] as $item) {
             $this->validateEdgeStructure($item);
-            
+
             $edges[] = new Edge(
                 source: (string)$item['source'],
                 target: (string)$item['target'],
