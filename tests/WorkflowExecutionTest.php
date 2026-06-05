@@ -6,6 +6,7 @@ namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use Yahlox\Domain\ExecutionContext;
+use Yahlox\Engine\ExpressionEvaluator;
 use Yahlox\Engine\WorkflowExecutor;
 use Yahlox\Engine\WorkflowValidator;
 use Yahlox\Parser\ReactFlowParser;
@@ -57,7 +58,8 @@ final class WorkflowExecutionTest extends TestCase
 
         $executor = new WorkflowExecutor(
             $registry,
-            new WorkflowValidator()
+            new WorkflowValidator(),
+            new ExpressionEvaluator()
         );
 
         $context = new ExecutionContext();

@@ -49,7 +49,8 @@ final class YahloxServiceProvider extends ServiceProvider
         $this->app->singleton(WorkflowExecutor::class, function ($app) {
             return new WorkflowExecutor(
                 $app->make(NodeProcessorRegistry::class),
-                $app->make(WorkflowValidator::class)
+                $app->make(WorkflowValidator::class),
+                $app->make(\Yahlox\Engine\ExpressionEvaluator::class)
             );
         });
 

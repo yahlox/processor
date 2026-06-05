@@ -1,0 +1,89 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  tests:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.0', '8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: pcov
+          extensions: curl, json, pdo, pdo_sqlite
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+      
+      - name: Run tests
+        run: composer test
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: matrix.php-version == '8.3'
+        with:
+          files: ./coverage/clover.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+  analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: curl, json, pdo
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+      
+      - name: Run PHPStan
+        run: composer analyze
+      
+      - name: Run Rector (dry-run)
+        run: composer rector
+
+  style:
+    name: Code Style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+      
+      - name: Check code style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff src
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Symfony Security Checker
+        uses: symfonycorp/security-checker-action@v3
+        with:
+          lock: ./composer.lock

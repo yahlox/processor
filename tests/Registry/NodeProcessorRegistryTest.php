@@ -6,6 +6,7 @@ namespace Tests\Registry;
 
 use PHPUnit\Framework\TestCase;
 use Yahlox\Domain\ExecutionContext;
+use Yahlox\Engine\ExpressionEvaluator;
 use Yahlox\Engine\WorkflowExecutor;
 use Yahlox\Engine\WorkflowValidator;
 use Yahlox\Parser\ReactFlowParser;
@@ -27,7 +28,7 @@ final class NodeProcessorRegistryTest extends TestCase
 
         $workflow = (new ReactFlowParser())->parse($json);
         $registry = new NodeProcessorRegistry();
-        $executor = new WorkflowExecutor($registry, new WorkflowValidator());
+        $executor = new WorkflowExecutor($registry, new WorkflowValidator(), new ExpressionEvaluator());
         $context = new ExecutionContext();
 
         $executor->execute($workflow, $context);

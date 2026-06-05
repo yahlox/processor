@@ -44,7 +44,11 @@ final class LoopNodeProcessor implements NodeProcessorInterface
             throw new RuntimeException('Loop node requires NodeProcessorRegistry in context key "_loop_registry"');
         }
 
-        $executor = new WorkflowExecutor($registry, new \Yahlox\Engine\WorkflowValidator());
+        $executor = new WorkflowExecutor(
+            $registry,
+            new \Yahlox\Engine\WorkflowValidator(),
+            new \Yahlox\Engine\ExpressionEvaluator()
+        );
 
         for ($i = 0; $i < $iterations; $i++) {
             // Provide iteration index to sub-workflow

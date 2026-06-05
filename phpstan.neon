@@ -1,0 +1,11 @@
+parameters:
+  level: 8
+  paths:
+    - src
+  excludePaths:
+    - tests
+  reportUnmatchedIgnoredErrors: false
+  ignoreErrors:
+    # Allow Illuminate/Laravel specific patterns
+    - '#Undefined method Illuminate\\#'
+    - '#Access to private property#'
